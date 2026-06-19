@@ -1,36 +1,80 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# ⚡ Testcases Creator
 
-## Getting Started
+> **Agentic Quality Engineering (AQE) SaaS** — AI agents that automate your entire testing lifecycle
 
-First, run the development server:
+[![Next.js](https://img.shields.io/badge/Next.js-16-black)](https://nextjs.org)
+[![Claude AI](https://img.shields.io/badge/Claude-Sonnet%204.6-orange)](https://anthropic.com)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5-blue)](https://typescriptlang.org)
+
+---
+
+## 🎯 What is Testcases Creator?
+
+Testcases Creator is an **Agentic QE platform** built on PACT principles (Proactive · Autonomous · Collaborative · Targeted) that replaces manual test writing with specialised AI agents. Paste a Jira story, get back complete test coverage in seconds.
+
+**From testing-as-activity → to agents-as-orchestrators.**
+
+---
+
+## 🤖 AI Agents
+
+| Agent | Job | Status |
+|-------|-----|--------|
+| 📋 SpecAgent | Enriches vague stories with ACs, edge cases, negative scenarios | ✅ Live |
+| ⚡ Sprint Tests | Generates unit & integration tests from acceptance criteria | ✅ Live |
+| 🔗 E2E Tests | Generates Playwright/Cypress user journey tests | ✅ Live |
+| 🔁 RegressionAgent | Runs full suite, detects flaky tests | 🔜 Coming |
+| 👥 UATAgent | Converts tests to plain English for stakeholder sign-off | 🔜 Coming |
+| 🔌 APITestAgent | Tests every endpoint, generates Postman collections | 🔜 Coming |
+
+---
+
+## ✨ Features
+
+- [x] Dashboard with test suite overview
+- [x] SpecAgent — story enrichment
+- [x] Sprint Test Generator (Jest · Vitest · Postman)
+- [x] E2E Test Generator (Playwright · Cypress)
+- [ ] Regression Test Suite runner
+- [ ] UAT Scenario Generator
+- [ ] Jira OAuth integration
+- [ ] Real Claude AI test generation (currently using demo data)
+- [ ] Stripe billing
+
+---
+
+## 🏗 Tech Stack
+
+| Layer | Technology |
+|-------|-----------|
+| Frontend | Next.js 16, TypeScript, Tailwind CSS |
+| AI Brain | Claude Sonnet 4.6 (Anthropic API) |
+| Hosting | Vercel |
+
+---
+
+## 🚀 Getting Started
 
 ```bash
+git clone https://github.com/RehanaKhan4/testcases-creator
+cd testcases-creator
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 📐 Built on PACT Principles
 
-## Learn More
+- **P**roactive — SpecAgent anticipates gaps before dev starts
+- **A**utonomous — Sprint & E2E agents work without human input
+- **C**ollaborative — UAT Agent bridges AI and business stakeholders
+- **T**argeted — Regression focuses on what changed, not everything
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 📄 License
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+MIT — built by Rehana Khan
