@@ -43,6 +43,9 @@ export default function RootLayout({
               <Link href="/e2e" className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-gray-600 hover:bg-gray-100 transition">
                 🔗 E2E Tests
               </Link>
+              <Link href="/api-test" className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-gray-600 hover:bg-gray-100 transition">
+                🔌 APITestAgent
+              </Link>
               <Link href="/regression" className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-gray-600 hover:bg-gray-100 transition">
                 🔁 Regression
               </Link>
