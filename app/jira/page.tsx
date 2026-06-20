@@ -27,10 +27,11 @@ export default function JiraPage() {
   };
 
   const copyForSpecAgent = (story: any) => {
-    const text = `Story: ${story.summary}\n\n${story.description}`;
+    const text = "Story: " + story.summary + "\n\n" + story.description;
     navigator.clipboard.writeText(text);
+    sessionStorage.setItem("jiraIssueKey", story.key);
     setCopiedKey(story.key);
-    setTimeout(() => setCopiedKey(""), 2000);
+    setTimeout(() => setCopiedKey(""), 3000);
   };
 
   return (
@@ -73,7 +74,7 @@ export default function JiraPage() {
                 onClick={() => copyForSpecAgent(s)}
                 className="text-xs bg-indigo-50 text-indigo-600 border border-indigo-200 px-3 py-1.5 rounded-lg hover:bg-indigo-100 transition"
               >
-                {copiedKey === s.key ? "✓ Copied! Paste in SpecAgent" : "📋 Copy for SpecAgent"}
+                {copiedKey === s.key ? "✓ Copied! Go to SpecAgent now" : "📋 Copy for SpecAgent"}
               </button>
             </div>
           ))}
