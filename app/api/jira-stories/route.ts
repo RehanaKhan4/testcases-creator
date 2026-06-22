@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 export const dynamic = "force-dynamic";
 
 
-export async function GET() {
+export async function GET(request: Request) {
   const baseUrl = process.env.JIRA_BASE_URL;
   const email = process.env.JIRA_EMAIL;
   const token = process.env.JIRA_API_TOKEN;
@@ -16,7 +16,9 @@ export async function GET() {
   }
 
   const auth = Buffer.from(`${email}:${token}`).toString("base64");
-  const jql = encodeURIComponent("project = SCRUM ORDER BY created DESC");
+  const { searchParams } = new URL(request.url);
+  const project = searchParams.get("project") || "SCRUM";
+  const jql = encodeURIComponent(`project = ${project} ORDER BY created DESC`);
 
   try {
     const res = await fetch(

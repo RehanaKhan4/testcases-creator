@@ -6,13 +6,14 @@ export default function JiraPage() {
   const [stories, setStories] = useState<any[]>([]);
   const [error, setError] = useState("");
   const [copiedKey, setCopiedKey] = useState("");
+  const [project, setProject] = useState("SCRUM");
 
   const fetchStories = async () => {
     setLoading(true);
     setError("");
     setStories([]);
     try {
-      const res = await fetch("/api/jira-stories");
+      const res = await fetch("/api/jira-stories?project=" + project);
       const data = await res.json();
       if (data.error) {
         setError(data.error + (data.details ? " — " + data.details : ""));
@@ -40,7 +41,24 @@ export default function JiraPage() {
       <p className="text-gray-400 mt-1 mb-8">
         Fetch real stories from your Jira workspace
       </p>
-
+      <div className="flex gap-2 mb-4">
+  <button
+    onClick={() => setProject("SCRUM")}
+    className={`text-sm px-4 py-2 rounded-lg border transition ${
+      project === "SCRUM" ? "bg-indigo-600 text-white border-indigo-600" : "border-gray-200 text-gray-500"
+    }`}
+  >
+    Testcases Creator
+  </button>
+  <button
+    onClick={() => setProject("MYC")}
+    className={`text-sm px-4 py-2 rounded-lg border transition ${
+      project === "MYC" ? "bg-indigo-600 text-white border-indigo-600" : "border-gray-200 text-gray-500"
+    }`}
+  >
+    CareAgent
+  </button>
+</div>
       <button
         onClick={fetchStories}
         disabled={loading}
