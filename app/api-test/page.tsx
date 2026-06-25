@@ -8,11 +8,18 @@ export default function ApiTestPage() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<any>(null);
   const [copied, setCopied] = useState(false);
+  const [progress, setProgress] = useState(0);
 
   const generate = async () => {
     if (!endpoint.trim()) return;
     setLoading(true);
     setResult(null);
+    setProgress(0);
+
+    const progressInterval = setInterval(() => {
+      setProgress((p) => (p < 90 ? p + Math.random() * 8 : p));
+    }, 300);
+
     try {
       const res = await fetch("/api/api-test-agent", {
         method: "POST",
@@ -24,7 +31,9 @@ export default function ApiTestPage() {
     } catch {
       setResult({ error: "Something went wrong." });
     } finally {
-      setLoading(false);
+      clearInterval(progressInterval);
+      setProgress(100);
+      setTimeout(() => setLoading(false), 300);
     }
   };
 
@@ -117,6 +126,29 @@ export default function ApiTestPage() {
         </div>
 
       </div>
+
+      {loading && (
+        <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl p-8 w-80 shadow-2xl">
+            <div className="flex justify-center mb-4">
+              <div className="w-12 h-12 rounded-full bg-indigo-50 flex items-center justify-center">
+                <span className="text-2xl animate-pulse">🔌</span>
+              </div>
+            </div>
+            <p className="text-center text-sm font-semibold text-gray-800 mb-1">APITestAgent</p>
+            <p className="text-center text-xs text-gray-400 mb-5">
+              {progress < 30 ? "Reading the endpoint spec..." :
+               progress < 60 ? "Designing test cases..." :
+               progress < 90 ? "Building Postman collection..." :
+               "Almost done..."}
+            </p>
+            <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+              <div className="h-full bg-indigo-500 rounded-full transition-all duration-300 ease-out" style={{ width: `${progress}%` }} />
+            </div>
+            <p className="text-center text-xs text-gray-400 mt-2">{Math.round(progress)}%</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

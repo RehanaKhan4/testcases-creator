@@ -7,6 +7,7 @@ export default function SprintPage() {
   const [framework, setFramework] = useState("Jest");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState("");
+  const [progress, setProgress] = useState(0);
 
   const frameworks = ["Jest", "Playwright", "Cypress", "Postman"];
 
@@ -14,6 +15,11 @@ export default function SprintPage() {
     if (!story.trim()) return;
     setLoading(true);
     setResult("");
+    setProgress(0);
+
+    const progressInterval = setInterval(() => {
+      setProgress((p) => (p < 90 ? p + Math.random() * 8 : p));
+    }, 300);
 
     try {
       const response = await fetch("/api/generate", {
@@ -26,7 +32,9 @@ export default function SprintPage() {
     } catch (error) {
       setResult("Something went wrong. Please try again.");
     } finally {
-      setLoading(false);
+      clearInterval(progressInterval);
+      setProgress(100);
+      setTimeout(() => setLoading(false), 300);
     }
   };
 
@@ -101,6 +109,29 @@ export default function SprintPage() {
         </div>
 
       </div>
+
+      {loading && (
+        <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl p-8 w-80 shadow-2xl">
+            <div className="flex justify-center mb-4">
+              <div className="w-12 h-12 rounded-full bg-indigo-50 flex items-center justify-center">
+                <span className="text-2xl animate-pulse">⚡</span>
+              </div>
+            </div>
+            <p className="text-center text-sm font-semibold text-gray-800 mb-1">Sprint Tests</p>
+            <p className="text-center text-xs text-gray-400 mb-5">
+              {progress < 30 ? "Reading acceptance criteria..." :
+               progress < 60 ? "Designing test scenarios..." :
+               progress < 90 ? `Writing ${framework} test code...` :
+               "Almost done..."}
+            </p>
+            <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+              <div className="h-full bg-indigo-500 rounded-full transition-all duration-300 ease-out" style={{ width: `${progress}%` }} />
+            </div>
+            <p className="text-center text-xs text-gray-400 mt-2">{Math.round(progress)}%</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

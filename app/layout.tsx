@@ -37,6 +37,9 @@ export default function RootLayout({
               <Link href="/spec" className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-gray-600 hover:bg-gray-100 transition">
               📋 SpecAgent
               </Link>
+              <Link href="/manual-tests" className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-gray-600 hover:bg-gray-100 transition">
+              📝 Manual Tests
+              </Link>
               <Link href="/sprint" className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-gray-600 hover:bg-gray-100 transition">
                 ⚡ Sprint Tests
               </Link>
