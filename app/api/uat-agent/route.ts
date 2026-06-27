@@ -3,38 +3,34 @@ import { NextRequest, NextResponse } from "next/server";
 export async function POST(request: NextRequest) {
   const { story } = await request.json();
 
-  const scenarios = [
-    {
-      title: "Successful login with valid OTP",
-      given: "a registered user is on the login screen",
-      when: "they enter a valid phone number and the correct OTP",
-      then: "they are redirected to their dashboard",
-    },
-    {
-      title: "OTP sent within expected time",
-      given: "a user enters a valid phone number",
-      when: "they click 'Send OTP'",
-      then: "they receive the OTP within 5 seconds",
-    },
-    {
-      title: "Account locks after repeated failures",
-      given: "a user has entered the wrong OTP twice",
-      when: "they enter the wrong OTP a third time",
-      then: "their account is locked for 30 minutes with a clear message shown",
-    },
-    {
-      title: "Expired OTP prompts resend",
-      given: "a user received an OTP more than 10 minutes ago",
-      when: "they try to use that expired OTP",
-      then: "they see a message asking them to resend a new OTP",
-    },
-    {
-      title: "Invalid phone number is rejected early",
-      given: "a user types an incomplete or invalid phone number",
-      when: "they click 'Send OTP'",
-      then: "they see an inline validation error before any request is sent",
-    },
-  ];
+  try {
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": process.env.ANTHROPIC_API_KEY!,
+        "anthropic-version": "2023-06-01",
+      },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-6",
+        max_tokens: 1500,
+        system: `You are writing UAT (User Acceptance Testing) scenarios for non-technical business stakeholders. Given a story, write 4-6 scenarios in Given/When/Then format that a stakeholder could read and approve without any technical knowledge.
 
-  return NextResponse.json({ scenarios });
+Return ONLY valid JSON, no markdown fences, in exactly this shape:
+{
+  "scenarios": [{"title": "string", "given": "string", "when": "string", "then": "string"}]
+}`,
+        messages: [{ role: "user", content: `Write UAT scenarios for this story:\n\n${story}` }],
+      }),
+    });
+
+    const data = await response.json();
+    const text = data.content?.[0]?.text ?? "";
+    const cleaned = text.replace(/```json|```/g, "").trim();
+    const result = JSON.parse(cleaned);
+
+    return NextResponse.json(result);
+  } catch (error: any) {
+    return NextResponse.json({ scenarios: [] });
+  }
 }
