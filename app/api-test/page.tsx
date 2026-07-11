@@ -9,11 +9,18 @@ export default function ApiTestPage() {
   const [result, setResult] = useState<any>(null);
   const [copied, setCopied] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [jiraKey, setJiraKey] = useState("");
+  const [savingToJira, setSavingToJira] = useState(false);
+  const [savedToJira, setSavedToJira] = useState(false);
 
   const generate = async () => {
+    const key = sessionStorage.getItem("jiraIssueKey") || "";
+    setJiraKey(key);
+
     if (!endpoint.trim()) return;
     setLoading(true);
     setResult(null);
+    setSavedToJira(false);
     setProgress(0);
 
     const progressInterval = setInterval(() => {
@@ -44,6 +51,45 @@ export default function ApiTestPage() {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const saveToJira = async () => {
+    if (!jiraKey || !result) return;
+    setSavingToJira(true);
+    try {
+      const body = [
+        `Endpoint: ${result.endpointName}`,
+        "",
+        "Test cases:",
+        ...(result.tests || []).map((t: any) => `[${t.priority}] ${t.name} — ${t.description}`),
+        "",
+        "Postman collection JSON:",
+        JSON.stringify(result.postmanCollection, null, 2),
+      ].join("\n");
+
+      const res = await fetch("/api/jira-comment", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          issueKey: jiraKey,
+          title: "🔌 API Tests (Testcases Creator)",
+          body,
+          isCode: false,
+          label: "api-tests",
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setSavedToJira(true);
+        setTimeout(() => setSavedToJira(false), 4000);
+      } else {
+        alert("Failed: " + (data.error || "unknown error"));
+      }
+    } catch {
+      alert("Failed to save to Jira");
+    } finally {
+      setSavingToJira(false);
+    }
+  };
+
   return (
     <div className="p-8 max-w-6xl">
       <h1 className="text-2xl font-bold text-gray-900">APITestAgent</h1>
@@ -72,6 +118,12 @@ export default function ApiTestPage() {
             />
           </div>
 
+          {jiraKey && (
+            <div className="bg-indigo-50 border border-indigo-200 rounded-lg px-3 py-2 text-xs text-indigo-600">
+              🔗 Linked to Jira ticket: <strong>{jiraKey}</strong>
+            </div>
+          )}
+
           <button
             onClick={generate}
             disabled={loading || !endpoint.trim()}
@@ -93,17 +145,28 @@ export default function ApiTestPage() {
             </div>
           ) : (
             <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-              <div className="px-5 py-4 border-b border-gray-100 flex justify-between items-center">
+              <div className="px-5 py-4 border-b border-gray-100 flex justify-between items-center flex-wrap gap-2">
                 <div>
                   <p className="font-semibold text-gray-900">{result.endpointName}</p>
                   <p className="text-xs text-gray-400 mt-0.5">{result.tests?.length} test cases generated</p>
                 </div>
-                <button
-                  onClick={copyCollection}
-                  className="text-xs bg-indigo-50 text-indigo-600 border border-indigo-200 px-3 py-1.5 rounded-lg flex-shrink-0"
-                >
-                  {copied ? "✓ Copied!" : "Copy Postman JSON"}
-                </button>
+                <div className="flex gap-2">
+                  <button
+                    onClick={copyCollection}
+                    className="text-xs bg-indigo-50 text-indigo-600 border border-indigo-200 px-3 py-1.5 rounded-lg flex-shrink-0"
+                  >
+                    {copied ? "✓ Copied!" : "Copy Postman JSON"}
+                  </button>
+                  {jiraKey && (
+                    <button
+                      onClick={saveToJira}
+                      disabled={savingToJira}
+                      className="text-xs bg-green-50 text-green-600 border border-green-200 px-3 py-1.5 rounded-lg flex-shrink-0"
+                    >
+                      {savingToJira ? "Saving..." : savedToJira ? "✓ Saved to " + jiraKey : "💾 Save to " + jiraKey}
+                    </button>
+                  )}
+                </div>
               </div>
 
               <div className="p-5 space-y-3 overflow-auto max-h-96">

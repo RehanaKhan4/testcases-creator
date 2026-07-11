@@ -13,10 +13,10 @@ export async function POST(request: NextRequest) {
       },
       body: JSON.stringify({
         model: "claude-sonnet-4-6",
-        max_tokens: 3000,
+        max_tokens: 4096,
         system: `You are a senior QA engineer writing manual test cases for a human tester to execute by hand.
 
-Return ONLY a valid JSON object, no markdown fences, no extra text, in exactly this shape:
+Return ONLY a valid JSON object, no markdown fences, no extra text before or after, in exactly this shape:
 {
   "title": "short title of the feature being tested",
   "testCases": [
@@ -32,7 +32,7 @@ Return ONLY a valid JSON object, no markdown fences, no extra text, in exactly t
   ]
 }
 
-Generate 6-10 test cases covering happy path, edge cases, and negative scenarios. Each test case must have concrete, realistic input data — never leave it generic.`,
+Generate exactly 6 test cases covering happy path, edge cases, and negative scenarios — even if the input story is very long, keep your output focused and complete. Each test case must have concrete, realistic input data — never leave it generic. Keep each field concise so the full JSON always closes properly.`,
         messages: [
           {
             role: "user",
@@ -44,8 +44,19 @@ Generate 6-10 test cases covering happy path, edge cases, and negative scenarios
 
     const data = await response.json();
     const text = data.content?.[0]?.text ?? "";
-    const cleaned = text.replace(/```json|```/g, "").trim();
-    const result = JSON.parse(cleaned);
+
+    const firstBrace = text.indexOf("{");
+    const lastBrace = text.lastIndexOf("}");
+
+    if (firstBrace === -1 || lastBrace === -1) {
+      return NextResponse.json(
+        { error: "ManualTestCaseAgent returned no usable JSON", details: text.slice(0, 300) },
+        { status: 500 }
+      );
+    }
+
+    const jsonSlice = text.slice(firstBrace, lastBrace + 1);
+    const result = JSON.parse(jsonSlice);
 
     return NextResponse.json(result);
   } catch (error: any) {

@@ -8,13 +8,20 @@ export default function E2EPage() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState("");
   const [progress, setProgress] = useState(0);
+  const [jiraKey, setJiraKey] = useState("");
+  const [savingToJira, setSavingToJira] = useState(false);
+  const [savedToJira, setSavedToJira] = useState(false);
 
   const frameworks = ["Playwright", "Cypress"];
 
   const generateTests = async () => {
+    const key = sessionStorage.getItem("jiraIssueKey") || "";
+    setJiraKey(key);
+
     if (!journey.trim()) return;
     setLoading(true);
     setResult("");
+    setSavedToJira(false);
     setProgress(0);
 
     const progressInterval = setInterval(() => {
@@ -37,6 +44,36 @@ export default function E2EPage() {
       setTimeout(() => setLoading(false), 300);
     }
   };
+
+  const saveToJira = async () => {
+    if (!jiraKey || !result) return;
+    setSavingToJira(true);
+    try {
+      const res = await fetch("/api/jira-comment", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          issueKey: jiraKey,
+          title: `🔗 E2E Tests — ${framework} (Testcases Creator)`,
+          body: result,
+          isCode: true,
+          label: "e2e-tests",
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setSavedToJira(true);
+        setTimeout(() => setSavedToJira(false), 4000);
+      } else {
+        alert("Failed: " + (data.error || "unknown error"));
+      }
+    } catch {
+      alert("Failed to save to Jira");
+    } finally {
+      setSavingToJira(false);
+    }
+  };
+
   return (
     <div className="p-8 max-w-5xl">
 
@@ -70,6 +107,12 @@ Example:
             />
           </div>
 
+          {jiraKey && (
+            <div className="bg-indigo-50 border border-indigo-200 rounded-lg px-3 py-2 text-xs text-indigo-600">
+              🔗 Linked to Jira ticket: <strong>{jiraKey}</strong>
+            </div>
+          )}
+
           <div className="bg-white rounded-xl border border-gray-200 p-4">
             <p className="text-sm font-semibold text-gray-700 mb-3">
               Framework
@@ -102,9 +145,20 @@ Example:
 
         {/* Right — Output */}
         <div className="bg-white rounded-xl border border-gray-200 p-4">
-          <p className="text-sm font-semibold text-gray-700 mb-3">
-            Generated Tests
-          </p>
+          <div className="flex justify-between items-center mb-3">
+            <p className="text-sm font-semibold text-gray-700">
+              Generated Tests
+            </p>
+            {jiraKey && result && (
+              <button
+                onClick={saveToJira}
+                disabled={savingToJira}
+                className="text-xs bg-green-50 text-green-600 border border-green-200 px-3 py-1.5 rounded-lg"
+              >
+                {savingToJira ? "Saving..." : savedToJira ? "✓ Saved to " + jiraKey : "💾 Save to " + jiraKey}
+              </button>
+            )}
+          </div>
           {result ? (
             <pre className="text-xs text-gray-700 whitespace-pre-wrap leading-relaxed overflow-auto max-h-96">
               {result}

@@ -8,15 +8,22 @@ export default function SprintPage() {
   const [result, setResult] = useState("");
   const [manualResult, setManualResult] = useState<any>(null);
   const [progress, setProgress] = useState(0);
+  const [jiraKey, setJiraKey] = useState("");
+  const [savingToJira, setSavingToJira] = useState(false);
+  const [savedToJira, setSavedToJira] = useState(false);
 
   const frameworks = ["Jest", "Playwright", "Cypress", "Postman", "Manual"];
   const isManual = framework === "Manual";
 
   const generateTests = async () => {
+    const key = sessionStorage.getItem("jiraIssueKey") || "";
+    setJiraKey(key);
+
     if (!story.trim()) return;
     setLoading(true);
     setResult("");
     setManualResult(null);
+    setSavedToJira(false);
     setProgress(0);
 
     const progressInterval = setInterval(() => {
@@ -54,6 +61,50 @@ export default function SprintPage() {
     }
   };
 
+  const saveToJira = async () => {
+    if (!jiraKey) return;
+    setSavingToJira(true);
+    try {
+      let title = "";
+      let body = "";
+      let isCode = false;
+
+      if (isManual && manualResult?.testCases) {
+        title = "📝 Manual Test Cases (Testcases Creator)";
+        body = manualResult.testCases
+          .map((tc: any) =>
+            `${tc.id} — ${tc.title} [${tc.priority}]\nInput: ${tc.inputData}\nSteps: ${tc.steps.join(" | ")}\nExpected: ${tc.expectedResult}`
+          )
+          .join("\n\n");
+      } else if (!isManual && result) {
+        title = `⚡ Sprint Tests — ${framework} (Testcases Creator)`;
+        body = result;
+        isCode = true;
+      } else {
+        setSavingToJira(false);
+        return;
+      }
+
+      const labelName = isManual ? "manual-tests" : "sprint-tests";
+      const res = await fetch("/api/jira-comment", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ issueKey: jiraKey, title, body, isCode, label: labelName }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setSavedToJira(true);
+        setTimeout(() => setSavedToJira(false), 4000);
+      } else {
+        alert("Failed: " + (data.error || "unknown error"));
+      }
+    } catch {
+      alert("Failed to save to Jira");
+    } finally {
+      setSavingToJira(false);
+    }
+  };
+
   return (
     <div className="p-8 max-w-5xl">
 
@@ -64,7 +115,6 @@ export default function SprintPage() {
 
       <div className="grid grid-cols-2 gap-6">
 
-        {/* Left — Input */}
         <div className="flex flex-col gap-4">
           <div className="bg-white rounded-xl border border-gray-200 p-4">
             <p className="text-sm font-semibold text-gray-700 mb-2">
@@ -77,6 +127,12 @@ export default function SprintPage() {
               onChange={(e) => setStory(e.target.value)}
             />
           </div>
+
+          {jiraKey && (
+            <div className="bg-indigo-50 border border-indigo-200 rounded-lg px-3 py-2 text-xs text-indigo-600">
+              🔗 Linked to Jira ticket: <strong>{jiraKey}</strong>
+            </div>
+          )}
 
           <div className="bg-white rounded-xl border border-gray-200 p-4">
             <p className="text-sm font-semibold text-gray-700 mb-3">
@@ -114,11 +170,21 @@ export default function SprintPage() {
           </button>
         </div>
 
-        {/* Right — Output */}
         <div className="bg-white rounded-xl border border-gray-200 p-4">
-          <p className="text-sm font-semibold text-gray-700 mb-3">
-            Generated Tests
-          </p>
+          <div className="flex justify-between items-center mb-3">
+            <p className="text-sm font-semibold text-gray-700">
+              Generated Tests
+            </p>
+            {jiraKey && ((isManual && manualResult?.testCases) || (!isManual && result)) && (
+              <button
+                onClick={saveToJira}
+                disabled={savingToJira}
+                className="text-xs bg-green-50 text-green-600 border border-green-200 px-3 py-1.5 rounded-lg"
+              >
+                {savingToJira ? "Saving..." : savedToJira ? "✓ Saved to " + jiraKey : "💾 Save to " + jiraKey}
+              </button>
+            )}
+          </div>
 
           {isManual ? (
             manualResult?.testCases ? (
